@@ -104,9 +104,23 @@ def construct_readme_file(data: dict, directory: str) -> None:
     with open(os.path.join(directory, "README.md"), "w", encoding="utf-8") as f:
         f.write(readme_content)
 
-def construct_template_file(data: dict, directory: str) -> None:
-    with open(os.path.join(directory, f"{data["title"]}.cpp"), "w", encoding="utf-8") as f:
-        f.write(data["template"])
+def construct_template_file(data: dict, output_directory: str, template_directory: str) -> None:
+    template_content = ""
+    
+    # Include the header
+    with open(os.path.join(template_directory, "header.cpp"), "r", encoding="utf-8") as f_header:
+        template_content += f_header.read()
+    
+    # Include the Solution class
+    template_content += data["template"]
+    
+    # Include the main function
+    with open(os.path.join(template_directory, "footer.cpp"), "r", encoding="utf-8") as f_footer:
+        template_content += "\n\n" + f_footer.read()
+
+    # Write the combined template content to a file
+    with open(os.path.join(output_directory, f"{data["title"]}.cpp"), "w", encoding="utf-8") as f:
+        f.write(template_content)
 
 if __name__ == "__main__":
     driver = setup_selenium()
@@ -114,9 +128,11 @@ if __name__ == "__main__":
     url = "https://leetcode.com/problems/robot-collisions/description/"
     data = scrape_leetcode(driver, url)
 
-    directory = os.path.join(os.path.dirname(os.path.abspath(__file__)), "output", data["title"])
-    create_directory(directory)
-    construct_readme_file(data, directory)
-    construct_template_file(data, directory)
+    output_directory = os.path.join(os.path.dirname(os.path.abspath(__file__)), "output", data["title"])
+    create_directory(output_directory)
+    construct_readme_file(data, output_directory)
+    
+    template_directory = os.path.join(os.path.dirname(os.path.abspath(__file__)), "templates")
+    construct_template_file(data, output_directory, template_directory)
 
     driver.quit()
