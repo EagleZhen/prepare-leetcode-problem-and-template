@@ -123,15 +123,21 @@ def construct_template_file(data: dict, output_directory: str, template_director
         f.write(template_content)
 
 if __name__ == "__main__":
+    url = input("Enter the URL of the LeetCode problem: ")
+    outer_output_directory = input("Enter the directory where you want to save the problem: ")
+    
+    # Scrape the data from the LeetCode problem
     driver = setup_selenium()
-
-    url = "https://leetcode.com/problems/robot-collisions/description/"
     data = scrape_leetcode(driver, url)
 
-    output_directory = os.path.join(os.path.dirname(os.path.abspath(__file__)), "output", data["title"])
+    # Create the output directory
+    output_directory = os.path.join(outer_output_directory, data["title"])
     create_directory(output_directory)
+    
+    # Construct the README file
     construct_readme_file(data, output_directory)
     
+    # Construct the template codes
     template_directory = os.path.join(os.path.dirname(os.path.abspath(__file__)), "templates")
     construct_template_file(data, output_directory, template_directory)
 
