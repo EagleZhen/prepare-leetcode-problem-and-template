@@ -15,7 +15,6 @@ def setup_selenium() -> WebDriver:
     driver.set_page_load_timeout(10)
     return driver
 
-
 def get_problem_title_in_plaintext(driver: WebDriver) -> str:
     title_element = WebDriverWait(driver, 10).until(
         EC.presence_of_element_located((By.CSS_SELECTOR, "a.no-underline.truncate.cursor-text"))
@@ -32,29 +31,33 @@ def get_problem_description_in_markdown(driver: WebDriver) -> str:
     markdown_content = md(html_content)
     return markdown_content
 
-def get_template_code(driver: WebDriver) -> str:
-    # Locate all the lines of the code by class name "view-line"
+def click_expand_icon(driver):
+    # Wait for the element to be clickable and then click it
     WebDriverWait(driver, 10).until(
-        EC.presence_of_element_located((By.CLASS_NAME, "view-line"))
+        EC.element_to_be_clickable((By.CSS_SELECTOR, "svg[data-icon='expand']"))
+    ).click()
+
+def get_template_code(driver: WebDriver) -> str:
+    # Wait until the codes are loaded
+    WebDriverWait(driver, 10).until(
+        EC.presence_of_element_located((By.CLASS_NAME, "view-lines"))
     )
-    code_lines = driver.find_elements(By.CLASS_NAME, "view-line")
-
-    # Extract and concatenate all the text
-    cpp_code = ""
-    for line in code_lines:
-        span = line.find_element(By.TAG_NAME, "span") # Only need the outermost span that contains all the words in the line
-        cpp_code += span.text
-        cpp_code += "\n"
-
-    return cpp_code
+    
+    # Directly get the code content from the Monaco editor
+    code_content = driver.execute_script(
+        "return monaco.editor.getModels()[0].getValue();"
+    )
+    
+    return code_content
 
 def scrape_leetcode(driver: WebDriver, url: str) -> dict:
     # Open the webpage
     driver.get(url)
-    driver.implicitly_wait(10)
-
+    
     problem_title = get_problem_title_in_plaintext(driver)
     problem_description_in_markdown = get_problem_description_in_markdown(driver)
+    
+    # Click the expand icon to show the code without wrapping
     template_code = get_template_code(driver)
 
     return {
