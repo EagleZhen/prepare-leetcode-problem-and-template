@@ -6,8 +6,9 @@ int main(){
 
     v1 = {};
     i1 = 0;
-    v2 = solution.f(input1, input2);
-    assert(i2 == vector<int>({1,2,3}));
+    i2 = 0;
+    v2 = solution.f(v1, v2);
+    assert(v2 == vector<int>({1,2,3}));
 
     return 0;
 }
