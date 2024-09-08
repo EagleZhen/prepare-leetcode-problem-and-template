@@ -1,0 +1,17 @@
+[tool.poetry]
+name = "prepare leetcode problem and template"
+version = "0.1.0"
+description = ""
+authors = ["Eagle Zhen <31062364+EagleZhen@users.noreply.github.com>"]
+license = "MIT"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.12"
+selenium = "^4.24.0"
+markdownify = "^0.13.1"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
