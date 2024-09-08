@@ -142,3 +142,5 @@ if __name__ == "__main__":
     construct_template_file(data, output_directory, template_directory)
 
     driver.quit()
+    
+    os.startfile(output_directory)
