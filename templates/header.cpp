@@ -3,7 +3,7 @@ using namespace std;
 
 #define ll long long
 
-const int maxn=1e5+5;
+const int MAXN = 1e5+5;
 
 /*
 
