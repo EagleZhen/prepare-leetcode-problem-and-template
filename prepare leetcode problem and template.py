@@ -27,8 +27,9 @@ def get_problem_description_in_markdown(driver: WebDriver) -> str:
     problem_description_element = WebDriverWait(driver, 10).until(
         EC.presence_of_element_located((By.CLASS_NAME, "elfjS"))
     )
+    
     html_content = problem_description_element.get_attribute("outerHTML")
-    markdown_content = markdownify(html_content)
+    markdown_content = markdownify(html_content, sup_symbol = "^", sub_symbol = "_")
     with open("test.html", "w", encoding="utf-8") as f:
         f.write(html_content)
     return markdown_content
