@@ -2,11 +2,11 @@ from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.webdriver import WebDriver
-from markdownify import markdownify as md
+from markdownify import markdownify
 import os
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-
+import mdformat
 
 def setup_selenium() -> WebDriver:
     chrome_options = Options()
@@ -28,7 +28,9 @@ def get_problem_description_in_markdown(driver: WebDriver) -> str:
         EC.presence_of_element_located((By.CLASS_NAME, "elfjS"))
     )
     html_content = problem_description_element.get_attribute("outerHTML")
-    markdown_content = md(html_content)
+    markdown_content = markdownify(html_content)
+    with open("test.html", "w", encoding="utf-8") as f:
+        f.write(html_content)
     return markdown_content
 
 def click_expand_icon(driver):
@@ -100,9 +102,13 @@ def create_directory(directory: str) -> None:
 
 
 def construct_readme_file(data: dict, directory: str) -> None:
+    '''
+    Construct the README file for the problem, which includes the title and description in a formatted way
+    '''
     readme_content = f"# {data["title"]}\n\n{format_heading(data['description'])}"
     with open(os.path.join(directory, "README.md"), "w", encoding="utf-8") as f:
         f.write(readme_content)
+    mdformat.file(os.path.join(directory, "README.md"))
 
 def construct_template_file(data: dict, output_directory: str, template_directory: str) -> None:
     template_content = ""
