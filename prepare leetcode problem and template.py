@@ -7,6 +7,7 @@ import os
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 import mdformat
+import re
 
 
 def setup_selenium() -> WebDriver:
@@ -97,12 +98,39 @@ def format_heading(markdown_content: str) -> str:
     return modified_markdown_content
 
 
-def convert_non_standard_syntax(html_content: str) -> str:
+def convert_superscript_and_subscript(html_content: str) -> str:
     '''
     Handle things like superscript and subscript in the html content
     '''
-    markdown_content = html_content.replace("<sup>", "^").replace("</sup>", "")
-    markdown_content = markdown_content.replace("<sub>", "_").replace("</sub>", "")
+    return (
+        html_content
+        .replace("<sup>", "^")
+        .replace("</sup>", "")
+        .replace("<sub>", "_")
+        .replace("</sub>", "")
+    )
+
+
+def remove_code_block_ending_blank_line(markdown_content: str) -> str:
+    '''
+    Remove the blank line after a code block in markdown content
+    '''
+    # Regular expression to find code blocks
+    with open("test.md", "w", encoding="utf-8") as f:
+        f.write(markdown_content)
+
+    code_block_pattern = re.compile(r'(```.*?```)', re.DOTALL)
+
+    def remove_blank_line_above_closing(match: re.Match) -> str:
+        code_block = match.group(1)
+        # Remove blank line above the closing ```
+        code_block = re.sub(r'\n\n(```)', r'\n\1', code_block)
+        return code_block
+
+    # Apply the function to all code blocks
+    modified_markdown_content = code_block_pattern.sub(remove_blank_line_above_closing, markdown_content)
+
+    return modified_markdown_content
 
 
 def create_directory(directory: str) -> None:
@@ -119,7 +147,11 @@ def construct_readme_file(data: dict, directory: str) -> None:
     '''
     Construct the README file for the problem, which includes the title and description in a formatted way
     '''
-    readme_content = f"# {data["title"]}\n\n{format_heading(data['description'])}"
+    description = format_heading(data["description"])
+    description = convert_superscript_and_subscript(description)
+    description = remove_code_block_ending_blank_line(description)
+
+    readme_content = f"# {data["title"]}\n\n{description}"
     with open(os.path.join(directory, "README.md"), "w", encoding="utf-8") as f:
         f.write(readme_content)
     mdformat.file(os.path.join(directory, "README.md"))
