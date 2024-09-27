@@ -31,7 +31,7 @@ def get_problem_description_in_markdown(driver: WebDriver) -> str:
     )
 
     html_content = problem_description_element.get_attribute("outerHTML")
-    markdown_content = markdownify(html_content, sup_symbol="^", sub_symbol="_")
+    markdown_content = markdownify(html_content)
     with open("test.html", "w", encoding="utf-8") as f:
         f.write(html_content)
     return markdown_content
@@ -95,6 +95,14 @@ def format_heading(markdown_content: str) -> str:
             modified_lines.append(line)
     modified_markdown_content = "\n".join(modified_lines)
     return modified_markdown_content
+
+
+def convert_non_standard_syntax(html_content: str) -> str:
+    '''
+    Handle things like superscript and subscript in the html content
+    '''
+    markdown_content = html_content.replace("<sup>", "^").replace("</sup>", "")
+    markdown_content = markdown_content.replace("<sub>", "_").replace("</sub>", "")
 
 
 def create_directory(directory: str) -> None:
