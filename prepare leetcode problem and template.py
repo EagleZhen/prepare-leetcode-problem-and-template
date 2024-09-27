@@ -32,6 +32,9 @@ def get_problem_description_in_markdown(driver: WebDriver) -> str:
     )
 
     html_content = problem_description_element.get_attribute("outerHTML")
+    # The superscript and subscript are not handled properly by markdownify
+    html_content = convert_superscript_and_subscript(html_content)
+
     markdown_content = markdownify(html_content)
     with open("test.html", "w", encoding="utf-8") as f:
         f.write(html_content)
@@ -148,7 +151,6 @@ def construct_readme_file(data: dict, directory: str) -> None:
     Construct the README file for the problem, which includes the title and description in a formatted way
     '''
     description = format_heading(data["description"])
-    description = convert_superscript_and_subscript(description)
     description = remove_code_block_ending_blank_line(description)
 
     readme_content = f"# {data["title"]}\n\n{description}"
