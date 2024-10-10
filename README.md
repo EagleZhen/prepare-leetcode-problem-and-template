@@ -9,7 +9,7 @@
 3. Install the project dependencies:
 
     ```
-    poetry install
+    poetry install --no-root
     ```
 
 4. Run the project by executing the cmd script or typing the following command:
