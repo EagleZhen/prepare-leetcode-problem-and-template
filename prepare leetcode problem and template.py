@@ -164,7 +164,7 @@ def construct_template_file(data: dict, output_directory: str, template_director
 
     # Include the header
     with open(os.path.join(template_directory, "header.cpp"), "r", encoding="utf-8") as f_header:
-        template_content += f_header.read()
+        template_content += f_header.read() + "\n"
 
     # Include the Solution class
     template_content += data["template"]
