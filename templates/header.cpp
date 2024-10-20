@@ -1,7 +1,7 @@
 #include <bits/stdc++.h>
 using namespace std;
+using ll=long long;
 
-#define ll long long
 #define debug if (0)
 
 const int MAXN = 1e5 + 5;
