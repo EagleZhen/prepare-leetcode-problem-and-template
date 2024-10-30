@@ -2,17 +2,17 @@
 
 */
 
-int main(){
+int main() {
     Solution solution;
 
-    vector<int> v1, output;
+    vector<int> input, output;
     int i1, i2;
 
-    v1 = {};
+    input = {};
     i1 = 0;
     i2 = 0;
-    output = solution.f(v1);
-    assert(output == vector<int>({1,2,3}));
+    output = solution.f(input);
+    assert(output == vector<int>({1, 2, 3}));
 
     return 0;
 }
