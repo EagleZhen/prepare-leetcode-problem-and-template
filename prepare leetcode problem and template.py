@@ -8,6 +8,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 import mdformat
 import re
+from urllib.parse import urlparse
 
 
 def setup_selenium() -> WebDriver:
@@ -17,6 +18,13 @@ def setup_selenium() -> WebDriver:
     driver = webdriver.Chrome(options=chrome_options)
     driver.set_page_load_timeout(10)
     return driver
+
+
+def get_problem_identifier_from_url(url: str) -> str:
+    path_parts = [part for part in urlparse(url).path.split("/") if part]
+    if len(path_parts) < 2 or path_parts[0] != "problems":
+        raise ValueError(f"Could not find a LeetCode problem identifier in URL: {url}")
+    return path_parts[1]
 
 
 def get_problem_title_in_plaintext(driver: WebDriver) -> str:
