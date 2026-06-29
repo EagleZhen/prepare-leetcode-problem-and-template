@@ -1,3 +1,13 @@
+# Prepare LeetCode Problem and Template
+
+Create a local workspace for a LeetCode problem from its URL.
+
+The script fetches the problem title, description, and C++ starter code, then generates a problem folder with a formatted `README.md` and solution template.
+
+![image-20260629145607479](./README.assets/image-20260629145607479.png)
+
+<img src="./README.assets/image-20260629150927890.png" alt="image-20260629150927890" style="zoom:45%;"/>     <---   <img src="./README.assets/image-20260629150501165.png" alt="image-20260629150501165" style="zoom: 40%;" />
+
 1. Install poetry from [the official website](https://python-poetry.org/docs/#installation)
 
 2. (Optional) Configure poetry to create virtual environments directly in the project directory:
