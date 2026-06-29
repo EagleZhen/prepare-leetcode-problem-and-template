@@ -3,78 +3,138 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.webdriver import WebDriver
 from markdownify import markdownify
+import json
 import os
 from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
 import mdformat
 import re
+from urllib.parse import urlparse
 
 
 def setup_selenium() -> WebDriver:
     chrome_options = Options()
     # chrome_options.add_argument("--headless")
+    chrome_options.add_experimental_option("excludeSwitches", ["enable-logging"])
     driver = webdriver.Chrome(options=chrome_options)
     driver.set_page_load_timeout(10)
+    driver.set_script_timeout(20)
     return driver
 
 
-def get_problem_title_in_plaintext(driver: WebDriver) -> str:
-    title_element = WebDriverWait(driver, 10).until(
-        EC.presence_of_element_located((By.CSS_SELECTOR, "a.no-underline.truncate.cursor-text"))
+def get_problem_identifier_from_url(url: str) -> str:
+    path_parts = [part for part in urlparse(url).path.split("/") if part]
+    if len(path_parts) < 2 or path_parts[0] != "problems":
+        raise ValueError(f"Could not find a LeetCode problem identifier in URL: {url}")
+    return path_parts[1]
+
+
+def save_debug_snapshot(driver: WebDriver) -> None:
+    with open("leetcode_debug.html", "w", encoding="utf-8") as f:
+        f.write(driver.page_source)
+
+
+def wait_until_not_cloudflare(driver: WebDriver) -> None:
+    def is_ready(current_driver: WebDriver) -> bool:
+        page_text = current_driver.find_element(By.TAG_NAME, "body").text.lower()
+        title = current_driver.title.lower()
+        cloudflare_markers = [
+            "just a moment",
+            "performing security verification",
+            "verify you are not a bot",
+        ]
+        return not any(marker in title or marker in page_text for marker in cloudflare_markers)
+
+    WebDriverWait(driver, 45).until(is_ready)
+
+
+def fetch_question_data_from_browser(driver: WebDriver, problem_identifier: str) -> dict:
+    query = """
+    query questionData($titleSlug: String!) {
+      question(titleSlug: $titleSlug) {
+        questionFrontendId
+        title
+        content
+        codeSnippets {
+          lang
+          langSlug
+          code
+        }
+      }
+    }
+    """
+    result = driver.execute_async_script(
+        """
+        const [query, problemIdentifier, done] = arguments;
+        fetch('/graphql', {
+          method: 'POST',
+          credentials: 'include',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ query, variables: { titleSlug: problemIdentifier } })
+        })
+          .then(async response => done({
+            ok: response.ok,
+            status: response.status,
+            text: await response.text()
+          }))
+          .catch(error => done({ ok: false, error: String(error) }));
+        """,
+        query,
+        problem_identifier,
     )
-    text_content = title_element.text
-    return text_content
+
+    if not result.get("ok"):
+        save_debug_snapshot(driver)
+        status = result.get("status", "unknown")
+        error = result.get("error") or result.get("text", "")
+        raise RuntimeError(
+            f"LeetCode GraphQL request failed with status {status}: {error[:300]}"
+        )
+
+    payload = json.loads(result["text"])
+    if payload.get("errors"):
+        raise RuntimeError(f"LeetCode GraphQL returned errors: {payload['errors']}")
+
+    question = payload.get("data", {}).get("question")
+    if not question:
+        raise RuntimeError(f"No question data returned for identifier: {problem_identifier}")
+
+    return question
 
 
-def get_problem_description_in_markdown(driver: WebDriver) -> str:
-    problem_description_element = WebDriverWait(driver, 10).until(
-        EC.presence_of_element_located((By.CLASS_NAME, "elfjS"))
+def get_problem_title(question: dict) -> str:
+    frontend_id = question.get("questionFrontendId")
+    title = question["title"]
+    if frontend_id:
+        return f"{frontend_id}. {title}"
+    return title
+
+
+def get_cpp_template_code(code_snippets: list[dict]) -> str:
+    for snippet in code_snippets:
+        if snippet.get("langSlug") == "cpp":
+            return snippet["code"]
+
+    available_languages = ", ".join(
+        snippet.get("lang", "unknown") for snippet in code_snippets
     )
-
-    html_content = problem_description_element.get_attribute("outerHTML")
-    # The superscript and subscript are not handled properly by markdownify
-    html_content = convert_superscript_and_subscript(html_content)
-
-    markdown_content = markdownify(html_content)
-    with open("test.html", "w", encoding="utf-8") as f:
-        f.write(html_content)
-    return markdown_content
-
-
-def click_expand_icon(driver):
-    # Wait for the element to be clickable and then click it
-    WebDriverWait(driver, 10).until(
-        EC.element_to_be_clickable((By.CSS_SELECTOR, "svg[data-icon='expand']"))
-    ).click()
-
-
-def get_template_code(driver: WebDriver) -> str:
-    # Wait until the codes are loaded
-    WebDriverWait(driver, 10).until(
-        EC.presence_of_element_located((By.CLASS_NAME, "view-lines"))
-    )
-
-    # Directly get the code content from the Monaco editor
-    code_content = driver.execute_script(
-        "return monaco.editor.getModels()[0].getValue();"
-    )
-
-    return code_content
+    raise RuntimeError(f"Could not find a C++ code snippet. Available languages: {available_languages}")
 
 
 def scrape_leetcode(driver: WebDriver, url: str) -> dict:
     # Open the webpage
     driver.get(url)
+    wait_until_not_cloudflare(driver)
 
-    problem_title = get_problem_title_in_plaintext(driver)
-    problem_description_in_markdown = get_problem_description_in_markdown(driver)
+    problem_identifier = get_problem_identifier_from_url(url)
+    question = fetch_question_data_from_browser(driver, problem_identifier)
 
-    # Click the expand icon to show the code without wrapping
-    template_code = get_template_code(driver)
+    html_content = convert_superscript_and_subscript(question["content"])
+    problem_description_in_markdown = markdownify(html_content)
+    template_code = get_cpp_template_code(question["codeSnippets"])
 
     return {
         "url": url,
-        "title": problem_title,
+        "title": get_problem_title(question),
         "description": problem_description_in_markdown,
         "template": template_code,
     }
@@ -119,9 +179,6 @@ def remove_code_block_ending_blank_line(markdown_content: str) -> str:
     Remove the blank line after a code block in markdown content
     '''
     # Regular expression to find code blocks
-    with open("test.md", "w", encoding="utf-8") as f:
-        f.write(markdown_content)
-
     code_block_pattern = re.compile(r'(```.*?```)', re.DOTALL)
 
     def remove_blank_line_above_closing(match: re.Match) -> str:
