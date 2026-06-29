@@ -6,7 +6,7 @@ The script fetches the problem title, description, and C++ starter code, then ge
 
 ![image-20260629145607479](./README.assets/image-20260629145607479.png)
 
-<img src="./README.assets/image-20260629150927890.png" alt="image-20260629150927890" style="zoom:45%;"/>     <---   <img src="./README.assets/image-20260629150501165.png" alt="image-20260629150501165" style="zoom: 40%;" />
+<img src="./README.assets/image-20260629150927890.png" alt="image-20260629150927890" width="40%"/>     <--------   <img src="./README.assets/image-20260629150501165.png" alt="image-20260629150501165" width="45%" />
 
 1. Install poetry from [the official website](https://python-poetry.org/docs/#installation)
 
