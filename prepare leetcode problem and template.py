@@ -51,6 +51,7 @@ def fetch_question_data_from_browser(driver: WebDriver, problem_identifier: str)
     query = """
     query questionData($titleSlug: String!) {
       question(titleSlug: $titleSlug) {
+        questionFrontendId
         title
         content
         codeSnippets {
@@ -100,6 +101,14 @@ def fetch_question_data_from_browser(driver: WebDriver, problem_identifier: str)
     return question
 
 
+def get_problem_title(question: dict) -> str:
+    frontend_id = question.get("questionFrontendId")
+    title = question["title"]
+    if frontend_id:
+        return f"{frontend_id}. {title}"
+    return title
+
+
 def get_cpp_template_code(code_snippets: list[dict]) -> str:
     for snippet in code_snippets:
         if snippet.get("langSlug") == "cpp":
@@ -125,7 +134,7 @@ def scrape_leetcode(driver: WebDriver, url: str) -> dict:
 
     return {
         "url": url,
-        "title": question["title"],
+        "title": get_problem_title(question),
         "description": problem_description_in_markdown,
         "template": template_code,
     }
