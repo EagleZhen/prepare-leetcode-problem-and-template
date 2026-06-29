@@ -6,7 +6,6 @@ from markdownify import markdownify
 import json
 import os
 from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
 import mdformat
 import re
 from urllib.parse import urlparse
@@ -27,68 +26,6 @@ def get_problem_identifier_from_url(url: str) -> str:
     if len(path_parts) < 2 or path_parts[0] != "problems":
         raise ValueError(f"Could not find a LeetCode problem identifier in URL: {url}")
     return path_parts[1]
-
-
-def get_problem_title_in_plaintext(driver: WebDriver) -> str:
-    title_element = WebDriverWait(driver, 10).until(
-        EC.presence_of_element_located((By.CSS_SELECTOR, "a.no-underline.truncate.cursor-text"))
-    )
-    text_content = title_element.text
-    return text_content
-
-
-def get_problem_description_in_markdown(driver: WebDriver) -> str:
-    selectors = [
-        "[data-track-load='description_content']",
-        "[data-key='description-content']",
-        "[class*='question-content']",
-        "[class*='description']",
-        ".elfjS",
-    ]
-
-    problem_description_element = None
-    for selector in selectors:
-        elements = driver.find_elements(By.CSS_SELECTOR, selector)
-        visible_elements = [element for element in elements if element.is_displayed() and element.text.strip()]
-        if visible_elements:
-            problem_description_element = visible_elements[0]
-            break
-
-    if problem_description_element is None:
-        save_debug_snapshot(driver)
-        raise RuntimeError(
-            "Could not find the problem description. Saved the current browser HTML to "
-            "leetcode_debug.html so you can check whether LeetCode showed Cloudflare, "
-            "a login wall, or changed its markup."
-        )
-
-    html_content = problem_description_element.get_attribute("outerHTML")
-    # The superscript and subscript are not handled properly by markdownify
-    html_content = convert_superscript_and_subscript(html_content)
-
-    markdown_content = markdownify(html_content)
-    return markdown_content
-
-
-def click_expand_icon(driver):
-    # Wait for the element to be clickable and then click it
-    WebDriverWait(driver, 10).until(
-        EC.element_to_be_clickable((By.CSS_SELECTOR, "svg[data-icon='expand']"))
-    ).click()
-
-
-def get_template_code(driver: WebDriver) -> str:
-    # Wait until the codes are loaded
-    WebDriverWait(driver, 10).until(
-        EC.presence_of_element_located((By.CLASS_NAME, "view-lines"))
-    )
-
-    # Directly get the code content from the Monaco editor
-    code_content = driver.execute_script(
-        "return monaco.editor.getModels()[0].getValue();"
-    )
-
-    return code_content
 
 
 def save_debug_snapshot(driver: WebDriver) -> None:
