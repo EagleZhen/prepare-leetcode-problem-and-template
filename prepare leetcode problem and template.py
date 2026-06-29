@@ -170,9 +170,6 @@ def remove_code_block_ending_blank_line(markdown_content: str) -> str:
     Remove the blank line after a code block in markdown content
     '''
     # Regular expression to find code blocks
-    with open("test.md", "w", encoding="utf-8") as f:
-        f.write(markdown_content)
-
     code_block_pattern = re.compile(r'(```.*?```)', re.DOTALL)
 
     def remove_blank_line_above_closing(match: re.Match) -> str:
