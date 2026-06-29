@@ -14,9 +14,10 @@ from urllib.parse import urlparse
 def setup_selenium() -> WebDriver:
     chrome_options = Options()
     # chrome_options.add_argument("--headless")
+    chrome_options.page_load_strategy = "eager"
     chrome_options.add_experimental_option("excludeSwitches", ["enable-logging"])
     driver = webdriver.Chrome(options=chrome_options)
-    driver.set_page_load_timeout(10)
+    driver.set_page_load_timeout(30)
     driver.set_script_timeout(20)
     return driver
 
