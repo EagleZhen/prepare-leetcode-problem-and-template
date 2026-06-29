@@ -179,15 +179,16 @@ def scrape_leetcode(driver: WebDriver, url: str) -> dict:
     driver.get(url)
     wait_until_not_cloudflare(driver)
 
-    problem_title = get_problem_title_in_plaintext(driver)
-    problem_description_in_markdown = get_problem_description_in_markdown(driver)
+    problem_identifier = get_problem_identifier_from_url(url)
+    question = fetch_question_data_from_browser(driver, problem_identifier)
 
-    # Click the expand icon to show the code without wrapping
-    template_code = get_template_code(driver)
+    html_content = convert_superscript_and_subscript(question["content"])
+    problem_description_in_markdown = markdownify(html_content)
+    template_code = get_cpp_template_code(question["codeSnippets"])
 
     return {
         "url": url,
-        "title": problem_title,
+        "title": question["title"],
         "description": problem_description_in_markdown,
         "template": template_code,
     }
