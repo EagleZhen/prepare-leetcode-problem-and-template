@@ -174,21 +174,23 @@ def convert_superscript_and_subscript(html_content: str) -> str:
     )
 
 
-def remove_code_block_ending_blank_line(markdown_content: str) -> str:
+def remove_code_block_extra_blank_lines(markdown_content: str) -> str:
     '''
-    Remove the blank line after a code block in markdown content
+    Remove extra blank lines after opening and before closing code fences
     '''
     # Regular expression to find code blocks
     code_block_pattern = re.compile(r'(```.*?```)', re.DOTALL)
 
-    def remove_blank_line_above_closing(match: re.Match) -> str:
+    def remove_extra_blank_lines(match: re.Match) -> str:
         code_block = match.group(1)
+        # Remove blank line below the opening ```
+        code_block = re.sub(r'(```[^\n]*\n)\n+', r'\1', code_block)
         # Remove blank line above the closing ```
         code_block = re.sub(r'\n\n(```)', r'\n\1', code_block)
         return code_block
 
     # Apply the function to all code blocks
-    modified_markdown_content = code_block_pattern.sub(remove_blank_line_above_closing, markdown_content)
+    modified_markdown_content = code_block_pattern.sub(remove_extra_blank_lines, markdown_content)
 
     return modified_markdown_content
 
@@ -208,7 +210,7 @@ def construct_readme_file(data: dict, directory: str) -> None:
     Construct the README file for the problem, which includes the title and description in a formatted way
     '''
     description = format_heading(data["description"])
-    description = remove_code_block_ending_blank_line(description)
+    description = remove_code_block_extra_blank_lines(description)
 
     readme_content = f"# {data["title"]}\n\n{description}"
     with open(os.path.join(directory, "README.md"), "w", encoding="utf-8") as f:
