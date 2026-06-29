@@ -3,6 +3,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.webdriver import WebDriver
 from markdownify import markdownify
+import json
 import os
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
@@ -17,6 +18,7 @@ def setup_selenium() -> WebDriver:
     chrome_options.add_experimental_option("excludeSwitches", ["enable-logging"])
     driver = webdriver.Chrome(options=chrome_options)
     driver.set_page_load_timeout(10)
+    driver.set_script_timeout(20)
     return driver
 
 
@@ -106,6 +108,59 @@ def wait_until_not_cloudflare(driver: WebDriver) -> None:
         return not any(marker in title or marker in page_text for marker in cloudflare_markers)
 
     WebDriverWait(driver, 45).until(is_ready)
+
+
+def fetch_question_data_from_browser(driver: WebDriver, problem_identifier: str) -> dict:
+    query = """
+    query questionData($titleSlug: String!) {
+      question(titleSlug: $titleSlug) {
+        title
+        content
+        codeSnippets {
+          lang
+          langSlug
+          code
+        }
+      }
+    }
+    """
+    result = driver.execute_async_script(
+        """
+        const [query, problemIdentifier, done] = arguments;
+        fetch('/graphql', {
+          method: 'POST',
+          credentials: 'include',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ query, variables: { titleSlug: problemIdentifier } })
+        })
+          .then(async response => done({
+            ok: response.ok,
+            status: response.status,
+            text: await response.text()
+          }))
+          .catch(error => done({ ok: false, error: String(error) }));
+        """,
+        query,
+        problem_identifier,
+    )
+
+    if not result.get("ok"):
+        save_debug_snapshot(driver)
+        status = result.get("status", "unknown")
+        error = result.get("error") or result.get("text", "")
+        raise RuntimeError(
+            f"LeetCode GraphQL request failed with status {status}: {error[:300]}"
+        )
+
+    payload = json.loads(result["text"])
+    if payload.get("errors"):
+        raise RuntimeError(f"LeetCode GraphQL returned errors: {payload['errors']}")
+
+    question = payload.get("data", {}).get("question")
+    if not question:
+        raise RuntimeError(f"No question data returned for identifier: {problem_identifier}")
+
+    return question
 
 
 def scrape_leetcode(driver: WebDriver, url: str) -> dict:
