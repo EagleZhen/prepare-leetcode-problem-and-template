@@ -213,7 +213,7 @@ def construct_readme_file(data: dict, directory: str) -> None:
     description = format_heading(data["description"])
     description = remove_code_block_extra_blank_lines(description)
 
-    readme_content = f"# {data["title"]}\n\n{description}"
+    readme_content = f"# [{data["title"]}]({data["url"]})\n\n{description}"
     with open(os.path.join(directory, "README.md"), "w", encoding="utf-8") as f:
         f.write(readme_content)
     mdformat.file(os.path.join(directory, "README.md"))
