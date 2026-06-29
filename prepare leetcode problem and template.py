@@ -86,9 +86,24 @@ def save_debug_snapshot(driver: WebDriver) -> None:
         f.write(driver.page_source)
 
 
+def wait_until_not_cloudflare(driver: WebDriver) -> None:
+    def is_ready(current_driver: WebDriver) -> bool:
+        page_text = current_driver.find_element(By.TAG_NAME, "body").text.lower()
+        title = current_driver.title.lower()
+        cloudflare_markers = [
+            "just a moment",
+            "performing security verification",
+            "verify you are not a bot",
+        ]
+        return not any(marker in title or marker in page_text for marker in cloudflare_markers)
+
+    WebDriverWait(driver, 45).until(is_ready)
+
+
 def scrape_leetcode(driver: WebDriver, url: str) -> dict:
     # Open the webpage
     driver.get(url)
+    wait_until_not_cloudflare(driver)
 
     problem_title = get_problem_title_in_plaintext(driver)
     problem_description_in_markdown = get_problem_description_in_markdown(driver)
