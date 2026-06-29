@@ -163,6 +163,17 @@ def fetch_question_data_from_browser(driver: WebDriver, problem_identifier: str)
     return question
 
 
+def get_cpp_template_code(code_snippets: list[dict]) -> str:
+    for snippet in code_snippets:
+        if snippet.get("langSlug") == "cpp":
+            return snippet["code"]
+
+    available_languages = ", ".join(
+        snippet.get("lang", "unknown") for snippet in code_snippets
+    )
+    raise RuntimeError(f"Could not find a C++ code snippet. Available languages: {available_languages}")
+
+
 def scrape_leetcode(driver: WebDriver, url: str) -> dict:
     # Open the webpage
     driver.get(url)
