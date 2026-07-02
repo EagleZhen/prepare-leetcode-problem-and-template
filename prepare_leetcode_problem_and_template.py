@@ -209,15 +209,18 @@ def create_directory(directory: str) -> None:
 
 
 def open_directory(directory: str) -> None:
+    if not os.path.isdir(directory):
+        raise NotADirectoryError(f"Not a directory: {directory}")
+
     if hasattr(os, "startfile"):
         os.startfile(directory)
         return
 
     if sys.platform == "darwin":
-        subprocess.run(["open", directory], check=False)
+        subprocess.run(["open", directory], check=True)
         return
 
-    subprocess.run(["xdg-open", directory], check=False)
+    subprocess.run(["xdg-open", directory], check=True)
 
 
 def construct_readme_file(data: dict, directory: str) -> None:
