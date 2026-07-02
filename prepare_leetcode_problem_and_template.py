@@ -5,6 +5,8 @@ from selenium.webdriver.chrome.webdriver import WebDriver
 from markdownify import markdownify
 import json
 import os
+import subprocess
+import sys
 from selenium.webdriver.support.ui import WebDriverWait
 import mdformat
 import re
@@ -206,6 +208,18 @@ def create_directory(directory: str) -> None:
         os.makedirs(directory)
 
 
+def open_directory(directory: str) -> None:
+    if hasattr(os, "startfile"):
+        os.startfile(directory)
+        return
+
+    if sys.platform == "darwin":
+        subprocess.run(["open", directory], check=False)
+        return
+
+    subprocess.run(["xdg-open", directory], check=False)
+
+
 def construct_readme_file(data: dict, directory: str) -> None:
     '''
     Construct the README file for the problem, which includes the title and description in a formatted way
@@ -259,4 +273,4 @@ if __name__ == "__main__":
 
     driver.quit()
 
-    os.startfile(output_directory)
+    open_directory(output_directory)
