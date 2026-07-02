@@ -18,5 +18,5 @@ The script fetches the problem title, description, and C++ starter code, then ge
 
 3. Run the project by executing the cmd script or typing the following command:
     ```
-    uv run "prepare leetcode problem and template.py"
+    uv run prepare_leetcode_problem_and_template.py
     ```
