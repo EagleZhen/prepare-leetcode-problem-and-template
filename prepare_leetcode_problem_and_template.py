@@ -1,16 +1,17 @@
-from selenium import webdriver
-from selenium.webdriver.common.by import By
-from selenium.webdriver.chrome.options import Options
-from selenium.webdriver.chrome.webdriver import WebDriver
-from markdownify import markdownify
 import json
 import os
+import re
 import subprocess
 import sys
-from selenium.webdriver.support.ui import WebDriverWait
-import mdformat
-import re
 from urllib.parse import urlparse
+
+import mdformat
+from markdownify import markdownify
+from selenium import webdriver
+from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.chrome.webdriver import WebDriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
 
 
 def setup_selenium() -> WebDriver:
@@ -45,12 +46,16 @@ def wait_until_not_cloudflare(driver: WebDriver) -> None:
             "performing security verification",
             "verify you are not a bot",
         ]
-        return not any(marker in title or marker in page_text for marker in cloudflare_markers)
+        return not any(
+            marker in title or marker in page_text for marker in cloudflare_markers
+        )
 
     WebDriverWait(driver, 45).until(is_ready)
 
 
-def fetch_question_data_from_browser(driver: WebDriver, problem_identifier: str) -> dict:
+def fetch_question_data_from_browser(
+    driver: WebDriver, problem_identifier: str
+) -> dict:
     query = """
     query questionData($titleSlug: String!) {
       question(titleSlug: $titleSlug) {
@@ -99,7 +104,9 @@ def fetch_question_data_from_browser(driver: WebDriver, problem_identifier: str)
 
     question = payload.get("data", {}).get("question")
     if not question:
-        raise RuntimeError(f"No question data returned for identifier: {problem_identifier}")
+        raise RuntimeError(
+            f"No question data returned for identifier: {problem_identifier}"
+        )
 
     return question
 
@@ -120,7 +127,9 @@ def get_cpp_template_code(code_snippets: list[dict]) -> str:
     available_languages = ", ".join(
         snippet.get("lang", "unknown") for snippet in code_snippets
     )
-    raise RuntimeError(f"Could not find a C++ code snippet. Available languages: {available_languages}")
+    raise RuntimeError(
+        f"Could not find a C++ code snippet. Available languages: {available_languages}"
+    )
 
 
 def scrape_leetcode(driver: WebDriver, url: str) -> dict:
@@ -156,7 +165,9 @@ def format_heading(markdown_content: str) -> str:
     modified_lines = []
     for line in lines:
         if is_heading(line):
-            line = "## " + line[2:-2]  # remove bold formatting and make it a 2nd level heading
+            line = (
+                "## " + line[2:-2]
+            )  # remove bold formatting and make it a 2nd level heading
             modified_lines.append(line)
         else:
             modified_lines.append(line)
@@ -165,12 +176,11 @@ def format_heading(markdown_content: str) -> str:
 
 
 def convert_superscript_and_subscript(html_content: str) -> str:
-    '''
+    """
     Handle things like superscript and subscript in the html content
-    '''
+    """
     return (
-        html_content
-        .replace("<sup>", "^")
+        html_content.replace("<sup>", "^")
         .replace("</sup>", "")
         .replace("<sub>", "_")
         .replace("</sub>", "")
@@ -178,22 +188,24 @@ def convert_superscript_and_subscript(html_content: str) -> str:
 
 
 def remove_code_block_extra_blank_lines(markdown_content: str) -> str:
-    '''
+    """
     Remove extra blank lines after opening and before closing code fences
-    '''
+    """
     # Regular expression to find code blocks
-    code_block_pattern = re.compile(r'(```.*?```)', re.DOTALL)
+    code_block_pattern = re.compile(r"(```.*?```)", re.DOTALL)
 
     def remove_extra_blank_lines(match: re.Match) -> str:
         code_block = match.group(1)
         # Remove blank line below the opening ```
-        code_block = re.sub(r'(```[^\n]*\n)\n+', r'\1', code_block)
+        code_block = re.sub(r"(```[^\n]*\n)\n+", r"\1", code_block)
         # Remove blank line above the closing ```
-        code_block = re.sub(r'\n\n(```)', r'\n\1', code_block)
+        code_block = re.sub(r"\n\n(```)", r"\n\1", code_block)
         return code_block
 
     # Apply the function to all code blocks
-    modified_markdown_content = code_block_pattern.sub(remove_extra_blank_lines, markdown_content)
+    modified_markdown_content = code_block_pattern.sub(
+        remove_extra_blank_lines, markdown_content
+    )
 
     return modified_markdown_content
 
@@ -224,40 +236,50 @@ def open_directory(directory: str) -> None:
 
 
 def construct_readme_file(data: dict, directory: str) -> None:
-    '''
+    """
     Construct the README file for the problem, which includes the title and description in a formatted way
-    '''
+    """
     description = format_heading(data["description"])
     description = remove_code_block_extra_blank_lines(description)
 
-    readme_content = f"# [{data["title"]}]({data["url"]})\n\n{description}"
+    readme_content = f"# [{data['title']}]({data['url']})\n\n{description}"
     with open(os.path.join(directory, "README.md"), "w", encoding="utf-8") as f:
         f.write(readme_content)
     mdformat.file(os.path.join(directory, "README.md"))
 
 
-def construct_template_file(data: dict, output_directory: str, template_directory: str) -> None:
+def construct_template_file(
+    data: dict, output_directory: str, template_directory: str
+) -> None:
     template_content = ""
 
     # Include the header
-    with open(os.path.join(template_directory, "header.cpp"), "r", encoding="utf-8") as f_header:
+    with open(
+        os.path.join(template_directory, "header.cpp"), "r", encoding="utf-8"
+    ) as f_header:
         template_content += f_header.read() + "\n"
 
     # Include the Solution class
     template_content += data["template"]
 
     # Include the main function
-    with open(os.path.join(template_directory, "footer.cpp"), "r", encoding="utf-8") as f_footer:
+    with open(
+        os.path.join(template_directory, "footer.cpp"), "r", encoding="utf-8"
+    ) as f_footer:
         template_content += "\n\n" + f_footer.read()
 
     # Write the combined template content to a file
-    with open(os.path.join(output_directory, f"{data["title"]}.cpp"), "w", encoding="utf-8") as f:
+    with open(
+        os.path.join(output_directory, f"{data['title']}.cpp"), "w", encoding="utf-8"
+    ) as f:
         f.write(template_content)
 
 
 if __name__ == "__main__":
     url = input("Enter the URL of the LeetCode problem: ")
-    outer_output_directory = input("Enter the directory where you want to save the problem: ")
+    outer_output_directory = input(
+        "Enter the directory where you want to save the problem: "
+    )
 
     # Scrape the data from the LeetCode problem
     driver = setup_selenium()
@@ -271,7 +293,9 @@ if __name__ == "__main__":
     construct_readme_file(data, output_directory)
 
     # Construct the template codes
-    template_directory = os.path.join(os.path.dirname(os.path.abspath(__file__)), "templates")
+    template_directory = os.path.join(
+        os.path.dirname(os.path.abspath(__file__)), "templates"
+    )
     construct_template_file(data, output_directory, template_directory)
 
     driver.quit()
