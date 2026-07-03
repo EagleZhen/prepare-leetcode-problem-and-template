@@ -248,7 +248,7 @@ def save_last_problems_root_directory(directory: str) -> None:
 
     try:
         with open(CONFIG_FILE_PATH, "w", encoding="utf-8") as f:
-            json.dump({"last_problems_root_directory": directory}, f)
+            json.dump({"last_problems_root_directory": directory}, f, indent=2)
     except OSError:
         pass
 
