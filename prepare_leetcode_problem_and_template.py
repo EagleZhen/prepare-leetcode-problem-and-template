@@ -242,11 +242,15 @@ def open_directory(directory: str) -> None:
 def save_last_output_directory(directory: str) -> None:
     """
     Persist the given directory to the local config file so it can be
-    reused as the default on the next run
+    reused as the default on the next run. Best-effort: failing to save
+    this convenience data should not crash a run that otherwise succeeded.
     """
 
-    with open(CONFIG_FILE_PATH, "w", encoding="utf-8") as f:
-        json.dump({"last_output_directory": directory}, f)
+    try:
+        with open(CONFIG_FILE_PATH, "w", encoding="utf-8") as f:
+            json.dump({"last_output_directory": directory}, f)
+    except OSError:
+        pass
 
 
 def load_last_output_directory() -> str | None:
@@ -262,7 +266,7 @@ def load_last_output_directory() -> str | None:
             last_output_directory = config.get("last_output_directory")
             if last_output_directory and os.path.isdir(last_output_directory):
                 return last_output_directory
-    except (FileNotFoundError, json.JSONDecodeError):
+    except (FileNotFoundError, json.JSONDecodeError, AttributeError):
         pass
 
     return None
