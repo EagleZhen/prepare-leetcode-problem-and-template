@@ -13,6 +13,10 @@ from selenium.webdriver.chrome.webdriver import WebDriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 
+CONFIG_FILE_PATH = os.path.join(
+    os.path.dirname(os.path.abspath(__file__)), ".config.json"
+)
+
 
 def setup_selenium() -> WebDriver:
     chrome_options = Options()
@@ -233,6 +237,16 @@ def open_directory(directory: str) -> None:
         return
 
     subprocess.run(["xdg-open", directory], check=True)
+
+
+def save_last_output_directory(directory: str) -> None:
+    """
+    Persist the given directory to the local config file so it can be
+    reused as the default on the next run
+    """
+
+    with open(CONFIG_FILE_PATH, "w", encoding="utf-8") as f:
+        json.dump({"last_output_directory": directory}, f)
 
 
 def construct_readme_file(data: dict, directory: str) -> None:
