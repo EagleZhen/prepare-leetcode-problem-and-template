@@ -273,6 +273,7 @@ def load_last_problems_root_directory() -> str | None:
 
     return None
 
+
 def construct_readme_file(data: dict, directory: str) -> None:
     """
     Construct the README file for the problem, which includes the title and description in a formatted way
@@ -315,9 +316,18 @@ def construct_template_file(
 
 if __name__ == "__main__":
     url = input("Enter the URL of the LeetCode problem: ")
-    problems_root_directory = input(
-        "Enter the directory where you want to save the problem: "
-    )
+
+    last_problems_root_directory = load_last_problems_root_directory()
+    if last_problems_root_directory:
+        prompt = (
+            "Enter the directory where you want to save the problem "
+            f"[{last_problems_root_directory}]: "
+        )
+        problems_root_directory = input(prompt) or last_problems_root_directory
+    else:
+        problems_root_directory = input(
+            "Enter the directory where you want to save the problem: "
+        )
 
     # Scrape the data from the LeetCode problem
     driver = setup_selenium()
@@ -339,3 +349,5 @@ if __name__ == "__main__":
     driver.quit()
 
     open_directory(problem_directory)
+
+    save_last_problems_root_directory(problems_root_directory)
