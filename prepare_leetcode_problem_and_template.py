@@ -249,6 +249,24 @@ def save_last_output_directory(directory: str) -> None:
         json.dump({"last_output_directory": directory}, f)
 
 
+def load_last_output_directory() -> str | None:
+    """
+    Load the previously saved output directory from the local config file.
+    Returns None if there is no usable saved value (e.g. first run, the
+    file is missing/corrupted, or the saved directory no longer exists).
+    """
+
+    try:
+        with open(CONFIG_FILE_PATH, "r", encoding="utf-8") as f:
+            config = json.load(f)
+            last_output_directory = config.get("last_output_directory")
+            if last_output_directory and os.path.isdir(last_output_directory):
+                return last_output_directory
+    except (FileNotFoundError, json.JSONDecodeError):
+        pass
+
+    return None
+
 def construct_readme_file(data: dict, directory: str) -> None:
     """
     Construct the README file for the problem, which includes the title and description in a formatted way
