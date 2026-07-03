@@ -1,16 +1,17 @@
-from selenium import webdriver
-from selenium.webdriver.common.by import By
-from selenium.webdriver.chrome.options import Options
-from selenium.webdriver.chrome.webdriver import WebDriver
-from markdownify import markdownify
 import json
 import os
+import re
 import subprocess
 import sys
-from selenium.webdriver.support.ui import WebDriverWait
-import mdformat
-import re
 from urllib.parse import urlparse
+
+import mdformat
+from markdownify import markdownify
+from selenium import webdriver
+from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.chrome.webdriver import WebDriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
 
 
 def setup_selenium() -> WebDriver:
