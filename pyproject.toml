@@ -16,5 +16,14 @@ dependencies = [
 
 [dependency-groups]
 dev = [
-    "ruff>=0.15.20",
+	"ruff>=0.15.20",
 ]
+
+[tool.ruff]
+line-length = 88 
+
+[tool.ruff.lint]
+select = ["E", "F", "I"]
+
+[tool.ruff.format]
+quote-style = "double"
