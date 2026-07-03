@@ -13,3 +13,8 @@ dependencies = [
 	"markdownify>=0.13.1",
 	"mdformat>=0.7.17",
 ]
+
+[dependency-groups]
+dev = [
+    "ruff>=0.15.20",
+]
