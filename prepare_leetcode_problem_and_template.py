@@ -321,16 +321,14 @@ if __name__ == "__main__":
     url = input("Enter the URL of the LeetCode problem: ")
 
     last_problems_root_directory = load_last_problems_root_directory()
+    default_hint = (
+        f" [{last_problems_root_directory}]" if last_problems_root_directory else ""
+    )
+    prompt = f"Enter the directory where you want to save the problem{default_hint}: "
     if last_problems_root_directory:
-        prompt = (
-            "Enter the directory where you want to save the problem "
-            f"[{last_problems_root_directory}]: "
-        )
         problems_root_directory = input(prompt) or last_problems_root_directory
     else:
-        problems_root_directory = input(
-            "Enter the directory where you want to save the problem: "
-        )
+        problems_root_directory = input(prompt)
 
     save_last_problems_root_directory(problems_root_directory)
 
