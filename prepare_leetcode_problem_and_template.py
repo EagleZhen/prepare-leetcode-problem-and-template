@@ -268,7 +268,7 @@ def load_last_problems_root_directory() -> str | None:
                 last_problems_root_directory
             ):
                 return last_problems_root_directory
-    except (FileNotFoundError, json.JSONDecodeError, AttributeError):
+    except (OSError, json.JSONDecodeError, AttributeError):
         pass
 
     return None
