@@ -239,7 +239,7 @@ def open_directory(directory: str) -> None:
     subprocess.run(["xdg-open", directory], check=True)
 
 
-def save_last_output_directory(directory: str) -> None:
+def save_last_problems_root_directory(directory: str) -> None:
     """
     Persist the given directory to the local config file so it can be
     reused as the default on the next run. Best-effort: failing to save
@@ -248,24 +248,26 @@ def save_last_output_directory(directory: str) -> None:
 
     try:
         with open(CONFIG_FILE_PATH, "w", encoding="utf-8") as f:
-            json.dump({"last_output_directory": directory}, f)
+            json.dump({"last_problems_root_directory": directory}, f)
     except OSError:
         pass
 
 
-def load_last_output_directory() -> str | None:
+def load_last_problems_root_directory() -> str | None:
     """
-    Load the previously saved output directory from the local config file.
-    Returns None if there is no usable saved value (e.g. first run, the
-    file is missing/corrupted, or the saved directory no longer exists).
+    Load the previously saved problems root directory from the local config
+    file. Returns None if there is no usable saved value (e.g. first run,
+    the file is missing/corrupted, or the saved directory no longer exists).
     """
 
     try:
         with open(CONFIG_FILE_PATH, "r", encoding="utf-8") as f:
             config = json.load(f)
-            last_output_directory = config.get("last_output_directory")
-            if last_output_directory and os.path.isdir(last_output_directory):
-                return last_output_directory
+            last_problems_root_directory = config.get("last_problems_root_directory")
+            if last_problems_root_directory and os.path.isdir(
+                last_problems_root_directory
+            ):
+                return last_problems_root_directory
     except (FileNotFoundError, json.JSONDecodeError, AttributeError):
         pass
 
@@ -285,7 +287,7 @@ def construct_readme_file(data: dict, directory: str) -> None:
 
 
 def construct_template_file(
-    data: dict, output_directory: str, template_directory: str
+    data: dict, problem_directory: str, template_directory: str
 ) -> None:
     template_content = ""
 
@@ -306,14 +308,14 @@ def construct_template_file(
 
     # Write the combined template content to a file
     with open(
-        os.path.join(output_directory, f"{data['title']}.cpp"), "w", encoding="utf-8"
+        os.path.join(problem_directory, f"{data['title']}.cpp"), "w", encoding="utf-8"
     ) as f:
         f.write(template_content)
 
 
 if __name__ == "__main__":
     url = input("Enter the URL of the LeetCode problem: ")
-    outer_output_directory = input(
+    problems_root_directory = input(
         "Enter the directory where you want to save the problem: "
     )
 
@@ -321,19 +323,19 @@ if __name__ == "__main__":
     driver = setup_selenium()
     data = scrape_leetcode(driver, url)
 
-    # Create the output directory
-    output_directory = os.path.join(outer_output_directory, data["title"])
-    create_directory(output_directory)
+    # Create the problem directory
+    problem_directory = os.path.join(problems_root_directory, data["title"])
+    create_directory(problem_directory)
 
     # Construct the README file
-    construct_readme_file(data, output_directory)
+    construct_readme_file(data, problem_directory)
 
     # Construct the template codes
     template_directory = os.path.join(
         os.path.dirname(os.path.abspath(__file__)), "templates"
     )
-    construct_template_file(data, output_directory, template_directory)
+    construct_template_file(data, problem_directory, template_directory)
 
     driver.quit()
 
-    open_directory(output_directory)
+    open_directory(problem_directory)
