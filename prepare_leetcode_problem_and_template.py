@@ -16,6 +16,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 CONFIG_FILE_PATH = os.path.join(
     os.path.dirname(os.path.abspath(__file__)), ".config.json"
 )
+CONFIG_KEY_LAST_PROBLEMS_ROOT_DIRECTORY = "last_problems_root_directory"
 
 
 def setup_selenium() -> WebDriver:
@@ -248,7 +249,7 @@ def save_last_problems_root_directory(directory: str) -> None:
 
     try:
         with open(CONFIG_FILE_PATH, "w", encoding="utf-8") as f:
-            json.dump({"last_problems_root_directory": directory}, f, indent=2)
+            json.dump({CONFIG_KEY_LAST_PROBLEMS_ROOT_DIRECTORY: directory}, f, indent=2)
     except OSError:
         pass
 
@@ -263,7 +264,9 @@ def load_last_problems_root_directory() -> str | None:
     try:
         with open(CONFIG_FILE_PATH, "r", encoding="utf-8") as f:
             config = json.load(f)
-            last_problems_root_directory = config.get("last_problems_root_directory")
+            last_problems_root_directory = config.get(
+                CONFIG_KEY_LAST_PROBLEMS_ROOT_DIRECTORY
+            )
             if isinstance(last_problems_root_directory, str) and os.path.isdir(
                 last_problems_root_directory
             ):
