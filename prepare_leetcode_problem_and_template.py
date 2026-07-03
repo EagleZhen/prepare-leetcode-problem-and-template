@@ -329,6 +329,8 @@ if __name__ == "__main__":
             "Enter the directory where you want to save the problem: "
         )
 
+    save_last_problems_root_directory(problems_root_directory)
+
     # Scrape the data from the LeetCode problem
     driver = setup_selenium()
     data = scrape_leetcode(driver, url)
@@ -349,5 +351,3 @@ if __name__ == "__main__":
     driver.quit()
 
     open_directory(problem_directory)
-
-    save_last_problems_root_directory(problems_root_directory)
