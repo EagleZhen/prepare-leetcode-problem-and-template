@@ -264,7 +264,7 @@ def load_last_problems_root_directory() -> str | None:
         with open(CONFIG_FILE_PATH, "r", encoding="utf-8") as f:
             config = json.load(f)
             last_problems_root_directory = config.get("last_problems_root_directory")
-            if last_problems_root_directory and os.path.isdir(
+            if isinstance(last_problems_root_directory, str) and os.path.isdir(
                 last_problems_root_directory
             ):
                 return last_problems_root_directory
