@@ -295,20 +295,20 @@ def construct_template_file(
 ) -> None:
     template_content = ""
 
-    # Include the header
-    with open(
-        os.path.join(template_directory, "header.cpp"), "r", encoding="utf-8"
-    ) as f_header:
-        template_content += f_header.read() + "\n"
+    # Temporarily omit the header.
+    # with open(
+    #     os.path.join(template_directory, "header.cpp"), "r", encoding="utf-8"
+    # ) as f_header:
+    #     template_content += f_header.read() + "\n"
 
     # Include the Solution class
     template_content += data["template"]
 
-    # Include the main function
-    with open(
-        os.path.join(template_directory, "footer.cpp"), "r", encoding="utf-8"
-    ) as f_footer:
-        template_content += "\n\n" + f_footer.read()
+    # Temporarily omit the footer.
+    # with open(
+    #     os.path.join(template_directory, "footer.cpp"), "r", encoding="utf-8"
+    # ) as f_footer:
+    #     template_content += "\n\n" + f_footer.read()
 
     # Write the combined template content to a file
     with open(
